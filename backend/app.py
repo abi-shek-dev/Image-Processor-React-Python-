@@ -1,11 +1,16 @@
 import zipfile
+import os
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 from converter import process_image
 import io
 
 app = Flask(__name__)
-CORS(app)
+
+# Security: Only allow your production frontend to access the API
+# Replace 'http://localhost:5173' with your actual Vercel/Netlify URL later
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+CORS(app, resources={r"/*": {"origins": [FRONTEND_URL]}})
 
 @app.route('/convert', methods=['POST'])
 def convert_route():
@@ -54,4 +59,7 @@ def convert_route():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    # Hosting platforms provide a 'PORT' environment variable
+    port = int(os.environ.get('PORT', 5000))
+    # Binding to 0.0.0.0 is required for most hosting services
+    app.run(host='0.0.0.0', port=port)

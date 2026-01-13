@@ -15,7 +15,7 @@ export const Footer = () => {
 
         {/* Center: Copyright */}
         <div className="text-sm text-black/50 font-medium">
-          Copyright <span className="text-emerald-500">©</span> 2025
+          Copyright <span className="text-emerald-500">©</span> 2026 Xe54z. All rights reserved.
         </div>
 
         {/* Right Side: Social Links */}

@@ -17,6 +17,8 @@ import { Footer } from './components/Footer';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; 
 
 function App() {
+
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   // --- Core State ---
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
@@ -117,7 +119,7 @@ function App() {
     formData.append('compress', isCompressOn);
 
     try {
-      const response = await axios.post('http://localhost:5000/convert', formData, {
+      const response = await axios.post(`${API_BASE_URL}/convert`, formData, {
         responseType: 'blob',
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
