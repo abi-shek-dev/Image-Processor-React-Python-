@@ -1,34 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  /* Dark Theme Palette */
-  --bg-primary: #0b0f19;   /* Deep background, like image_1.png */
-  --bg-secondary: #151b2b; /* Slightly lighter for cards/sidebars */
-  --text-primary: #ffffff; /* Main text color */
-  --text-secondary: #94a3b8; /* Secondary text (slate-400) */
-  --accent-green: #22c55e; /* Your vibrant green accent */
+  /* Light Theme Palette */
+  --bg-primary: #ffffff;   
+  --bg-secondary: #f8fafc; /* Light gray for cards */
+  --text-primary: #0f172a; /* Deep slate for text */
+  --text-secondary: #64748b; 
+  --accent-emerald: #10b981; /* Slightly more legible green for light backgrounds */
 }
 
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Custom Scrollbar for a premium feel */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Scrollbar for light mode */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { 
+  background: #cbd5e1; 
+  border-radius: 10px; 
 }
-::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--bg-secondary);
-  border-radius: 4px;
-  border: 2px solid var(--bg-primary);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #2d3748;
-}
+::-webkit-scrollbar-thumb:hover { background: var(--accent-emerald); }
