@@ -2,11 +2,12 @@ import React from 'react';
 import { FiAlertTriangle, FiX } from 'react-icons/fi';
 
 export const ConfirmationModal = ({ isOpen, onConfirm, onCancel }) => {
+  // Only render when the state is true
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-      {/* Backdrop */}
+      {/* Dimmed Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onCancel}
@@ -22,6 +23,7 @@ export const ConfirmationModal = ({ isOpen, onConfirm, onCancel }) => {
         </button>
 
         <div className="flex flex-col items-center text-center">
+          {/* Warning Icon */}
           <div className="p-4 bg-red-50 text-red-500 rounded-2xl mb-6">
             <FiAlertTriangle size={32} />
           </div>
@@ -34,13 +36,13 @@ export const ConfirmationModal = ({ isOpen, onConfirm, onCancel }) => {
           <div className="flex gap-3 w-full">
             <button
               onClick={onCancel}
-              className="flex-1 py-3 px-6 rounded-2xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all"
+              className="flex-1 py-3 px-6 rounded-2xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95"
             >
               Cancel
             </button>
             <button
               onClick={onConfirm}
-              className="flex-1 py-3 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 font-bold text-white shadow-lg shadow-emerald-200 transition-all"
+              className="flex-1 py-3 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 font-bold text-white shadow-lg shadow-emerald-200 transition-all active:scale-95"
             >
               Clear All
             </button>
