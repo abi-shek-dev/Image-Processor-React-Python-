@@ -3,7 +3,7 @@ import os
 import io
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
-from converter import process_image # Ensure this is in the /api folder
+from .converter import process_image # Ensure this is in the /api folder
 
 app = Flask(__name__)
 
