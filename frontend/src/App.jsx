@@ -10,6 +10,8 @@ import { Toast } from './components/Toast';
 import { DropZoneOverlay } from './components/DropZoneOverlay';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import { ProgressLoader } from './components/ProgressLoader';
+import { HowItWorks } from './components/HowItWorks';
+import { Footer } from './components/Footer';
 
 // Configuration
 const MAX_FILE_SIZE = 10 * 1024 * 1024; 
@@ -24,7 +26,7 @@ function App() {
   // --- Loading & Sequential Progress State ---
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [currentCount, setCurrentCount] = useState(0); // Tracking e.g., "3 of 10"
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // --- UI & Interaction State ---
   const [isDragging, setIsDragging] = useState(false);
@@ -107,22 +109,8 @@ function App() {
     
     setLoading(true);
     setProgress(0);
-    setCurrentCount(0);
+    setIsProcessing(false);
 
-    // If single file, use the standard direct download flow
-    if (files.length === 1) {
-      await processSingleFile(files[0]);
-    } else {
-      // For multiple files, we'll hit the endpoint multiple times or use your zip logic
-      // To keep your current backend 'zip' logic working, we send them all at once
-      // but track the upload progress
-      await processBatchWithProgress();
-    }
-    
-    setLoading(false);
-  };
-
-  const processBatchWithProgress = async () => {
     const formData = new FormData();
     files.forEach(file => formData.append('images', file));
     formData.append('format', format);
@@ -134,11 +122,16 @@ function App() {
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setProgress(percent);
+          if (percent === 100) setIsProcessing(true); // Switch text to "Optimizing..."
         }
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const downloadName = `PixelShift_Batch_${Date.now()}.zip`;
+      const isZip = files.length > 1;
+      const downloadName = isZip 
+        ? `PixelShift_Batch_${Date.now()}.zip` 
+        : `${files[0].name.split('.')[0]}.${format.toLowerCase()}`;
+      
       setLastDownloadUrl({ url, filename: downloadName });
 
       const link = document.createElement('a');
@@ -147,37 +140,13 @@ function App() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      triggerToast(`${files.length} images processed!`, 'success');
+      triggerToast(`${files.length} image(s) processed!`, 'success');
     } catch (err) {
-      triggerToast("Conversion failed", 'error');
-    }
-  };
-
-  const processSingleFile = async (file) => {
-    const formData = new FormData();
-    formData.append('images', file);
-    formData.append('format', format);
-    formData.append('compress', isCompressOn);
-
-    try {
-      const response = await axios.post('http://localhost:5000/convert', formData, {
-        responseType: 'blob',
-        onUploadProgress: (e) => setProgress(Math.round((e.loaded * 100) / e.total))
-      });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const downloadName = `${file.name.split('.')[0]}.${format.toLowerCase()}`;
-      setLastDownloadUrl({ url, filename: downloadName });
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', downloadName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      triggerToast("Image processed!", "success");
-    } catch (err) {
-      triggerToast("Failed to convert image", "error");
+      triggerToast("Conversion failed. Check backend connection.", 'error');
+    } finally {
+      setLoading(false);
+      setProgress(0);
+      setIsProcessing(false);
     }
   };
 
@@ -187,7 +156,7 @@ function App() {
       <DropZoneOverlay isDragging={isDragging} />
       
       {loading && (
-        <ProgressLoader progress={progress} fileCount={files.length} />
+        <ProgressLoader progress={progress} isProcessing={isProcessing} fileCount={files.length} />
       )}
 
       <ConfirmationModal 
@@ -198,47 +167,57 @@ function App() {
 
       <Navbar />
 
-      <main className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
-        <div className="lg:col-span-3 space-y-6">
-          <UploadCard 
-            files={files} 
-            setFiles={setFiles} 
-            onClearRequest={() => setIsClearModalOpen(true)} 
-          />
-          
-          <div className="bg-slate-50 border border-slate-200 rounded-[2rem] p-6 shadow-sm">
-            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Quality Control</h3>
-            <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200">
-              <p className="text-sm font-semibold text-slate-700">Compress</p>
-              <button 
-                onClick={() => setIsCompressOn(!isCompressOn)}
-                className={`w-11 h-6 flex items-center rounded-full p-1 transition-all ${isCompressOn ? 'bg-emerald-500 shadow-md' : 'bg-slate-300'}`}
-              >
-                <div className={`bg-white w-4 h-4 rounded-full shadow transform transition-transform ${isCompressOn ? 'translate-x-5' : 'translate-x-0'}`} />
-              </button>
+      <main className="max-w-[1400px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
+          {/* Left Sidebar */}
+          <div className="lg:col-span-3 space-y-6">
+            <UploadCard 
+              files={files} 
+              setFiles={setFiles} 
+              onClearRequest={() => setIsClearModalOpen(true)} 
+            />
+            
+            <div className="bg-slate-50 border border-slate-200 rounded-[2rem] p-6 shadow-sm">
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Quality Control</h3>
+              <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200">
+                <p className="text-sm font-semibold text-slate-700">Compress</p>
+                <button 
+                  onClick={() => setIsCompressOn(!isCompressOn)}
+                  className={`w-11 h-6 flex items-center rounded-full p-1 transition-all ${isCompressOn ? 'bg-emerald-500 shadow-md' : 'bg-slate-300'}`}
+                >
+                  <div className={`bg-white w-4 h-4 rounded-full shadow transform transition-transform ${isCompressOn ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+              </div>
             </div>
+          </div>
+
+          {/* Main Preview Area */}
+          <div className="lg:col-span-6">
+            <PreviewArea 
+              previews={previews} 
+              fileCount={files.length} 
+              lastDownloadUrl={lastDownloadUrl}
+              onRemove={removeFile}
+            />
+          </div>
+
+          {/* Quick Action Sidebar */}
+          <div className="lg:col-span-3">
+            <QuickActions 
+              currentFormat={format} 
+              setFormat={setFormat} 
+              onConvert={handleBatchConvert} 
+              loading={loading}
+              disabled={files.length === 0}
+            />
           </div>
         </div>
 
-        <div className="lg:col-span-6">
-          <PreviewArea 
-            previews={previews} 
-            fileCount={files.length} 
-            lastDownloadUrl={lastDownloadUrl}
-            onRemove={removeFile}
-          />
-        </div>
-
-        <div className="lg:col-span-3">
-          <QuickActions 
-            currentFormat={format} 
-            setFormat={setFormat} 
-            onConvert={handleBatchConvert} 
-            loading={loading}
-            disabled={files.length === 0}
-          />
-        </div>
+        {/* Informative Workflow Section */}
+        <HowItWorks />
       </main>
+
+      <Footer />
 
       {toast.show && (
         <Toast 
