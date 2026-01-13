@@ -1,15 +1,25 @@
-# snippet for backend/converter.py
-def process_image(input_bytes):
-    img = Image.open(io.BytesIO(input_bytes))
-    output = io.BytesIO()
+from PIL import Image
+import io
+
+def process_image(file_stream, target_format):
+    img = Image.open(file_stream)
+    target_format = target_format.upper()
     
-    # Check if image has transparency
-    if img.mode in ("RGBA", "P"):
-        # You can keep transparency in WebP!
-        img.save(output, format="WEBP", lossless=True, quality=100)
-    else:
-        # Standard high-quality conversion
-        img.save(output, format="WEBP", quality=85, method=6)
-        
-    output.seek(0)
-    return output
+    # Handle Transparency (Alpha Channel)
+    # If target is JPEG but source has transparency, paste onto a white background
+    if target_format in ["JPEG", "JPG"]:
+        if img.mode in ("RGBA", "P"):
+            background = Image.new("RGB", img.size, (255, 255, 255))
+            background.paste(img, mask=img.split()[3] if img.mode == "RGBA" else None)
+            img = background
+        else:
+            img = img.convert("RGB")
+            
+    # For all other formats, convert to RGB/RGBA automatically
+    elif img.mode not in ("RGB", "RGBA"):
+        img = img.convert("RGB")
+
+    img_io = io.BytesIO()
+    img.save(img_io, format=target_format, quality=95)
+    img_io.seek(0)
+    return img_io
